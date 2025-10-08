@@ -1,0 +1,1 @@
+logging_format: str = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
