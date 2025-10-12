@@ -1,6 +1,6 @@
 import logging
 from onionchat.conns.p2p import PeerConnection
-from onionchat.handlers.generic_cli import GenericCLIHandler
+from onionchat.handlers.cedit_cli import CEditCLI as CEHandler
 from onionchat.utils import constants
 
 logging.basicConfig(
@@ -14,5 +14,5 @@ if __name__ == '__main__':
     print("Establishing connection...")
     peer_conn = PeerConnection(peer_ip)
     peer_conn.est_connection()
-    chat = GenericCLIHandler(peer_conn.get_client())
+    chat = CEHandler(peer_conn.get_client())
     chat.open()

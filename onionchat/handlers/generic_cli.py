@@ -15,12 +15,14 @@ class GenericCLIHandler(GenericChatCore):
             raise RuntimeError("Provided socket has not estabilished conenction")
         super().__init__(sock, encoding, recv_timeout)
         self.client_pref = str(sock.getpeername()[0])
+        self.running = False
     
     def open(self) -> None:
         """Start chat session."""
-
         self.running = True
-
+        self._handle_ui()
+    
+    def _handle_ui(self) -> None:
         t_in = threading.Thread(target=self._in_thread)
         t_out = threading.Thread(target=self._out_thread)
 
