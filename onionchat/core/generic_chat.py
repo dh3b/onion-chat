@@ -1,7 +1,9 @@
 import socket
 from onionchat.utils.typing_classes import *
+from onionchat.core.chat_core import ChatCore
+from typing import Optional
 
-class GenericChatCore:
+class GenericChatCore(ChatCore):
     """Core messaging over socket.
     
     Args:
@@ -11,19 +13,21 @@ class GenericChatCore:
     """
 
     def __init__(self, sock: socket.socket, encoding: str = "utf-8", recv_timeout: float = 1.0) -> None:
-        self.sock = sock
+        super().__init__(sock)
         self.sock.settimeout(recv_timeout)
         self.encoding = encoding
-        self.running = False
 
-    def send_msg(self, msg: str) -> None:
+    def send_msg(self, msg: str) -> Optional[TerminateConnection]:
         """Send message to peer.
         
         Args:
             msg: Message to send
         """
 
-        self.sock.sendall(msg.encode(self.encoding))
+        try:
+            self.sock.sendall(msg.encode(self.encoding))
+        except (BrokenPipeError, OSError):
+            return TerminateConnection()
 
     def recv_msg(self) -> TerminateConnection | EmptyMessage | str:
         """Receive message from peer.
