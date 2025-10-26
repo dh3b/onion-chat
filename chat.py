@@ -14,18 +14,6 @@ logging.basicConfig(
     format=constants.logging_format
 )
 
-def _load_class(path: str):
-    """Load a class from 'module:Class' or 'module.Class' style string."""
-    if ":" in path:
-        mod_path, cls_name = path.split(":", 1)
-    elif "." in path:
-        mod_path, cls_name = path.rsplit(".", 1)
-    else:
-        raise ValueError("Provide full module path, e.g. 'onionchat.conn.p2p:PeerConnection'")
-
-    mod = importlib.import_module(mod_path)
-    return getattr(mod, cls_name)
-
 class PipelineInit:
     """Prepare connection, 3 layer chat pipeline"""
 
@@ -45,6 +33,18 @@ class PipelineInit:
         self.encoding = encoding
         self.recv_timeout = recv_timeout
 
+    def _load_class(self, path: str):
+        """Load a class from 'module:Class' or 'module.Class' style string."""
+        if ":" in path:
+            mod_path, cls_name = path.split(":", 1)
+        elif "." in path:
+            mod_path, cls_name = path.rsplit(".", 1)
+        else:
+            raise ValueError("Provide full module path, e.g. 'onionchat.conn.p2p:PeerConnection'")
+
+        mod = importlib.import_module(mod_path)
+        return getattr(mod, cls_name)
+
     def build(
         self,
         dest_ip: str,
@@ -56,9 +56,9 @@ class PipelineInit:
         """Init chat"""
         
         # Load classes
-        ConnCls = _load_class(self.conn_path)
-        CoreCls = _load_class(self.core_path)
-        HandlerCls = _load_class(self.handler_path)
+        ConnCls = self._load_class(self.conn_path)
+        CoreCls = self._load_class(self.core_path)
+        HandlerCls = self._load_class(self.handler_path)
 
         conn = ConnCls(dest_ip, port=self.port)
         try:
