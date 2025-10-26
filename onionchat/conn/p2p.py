@@ -2,22 +2,22 @@ from time import time
 import socket
 import logging
 from onionchat.utils.types import *
+from onionchat.conn.conn_core import ConnectionCore
 
 logger = logging.getLogger(__name__)
 
-class PeerConnection:
+class PeerConnection(ConnectionCore):
     """P2P connection handler."""
 
     def __init__(self, dest_ip, port=49152) -> None:
+        super().__init__(dest_ip, port)
         try:
             socket.inet_aton(dest_ip)
         except socket.error:
             logger.critical(f"{dest_ip} is not a valid ipv4 address")
             raise ValueError(f"{dest_ip} is not a valid ipv4 address")
         
-        self.dest_ip = dest_ip
         self.host_ip = socket.gethostbyname(socket.gethostname())
-        self.port = port
         self.rejected = []
         self.client = EmptySocket()
 

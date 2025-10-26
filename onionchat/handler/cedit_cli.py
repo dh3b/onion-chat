@@ -6,24 +6,34 @@ import datetime
 from onionchat.utils.funcs import wrap_text
 from onionchat.utils.types import *
 from onionchat.core.generic_chat import GenericChatCore
+from onionchat.core.chat_core import ChatCore
+from onionchat.handler.handler_core import HandlerCore
 
 logger = logging.getLogger(__name__)
 
-class CEditCLI(GenericChatCore):
+class CEditCLI(HandlerCore):
     """
         Curses based CLI chat interface.
+
+        Accepts a ChatCore or a raw socket (backwards compatible).
         
         Args:
             input_sym: Input prompt symbol
             timestamps: Whether to show timestamps on messages
-        """
+    """
 
-    def __init__(self, sock: socket.socket | EmptySocket, encoding: str = "utf-8", recv_timeout: float = 1.0, input_sym: str = ">", timestamps: bool = True) -> None:
-        if isinstance(sock, EmptySocket):
-            logger.critical("Provided socket has not estabilished conenction")
-            raise RuntimeError("Provided socket has not estabilished conenction")
-        super().__init__(sock, encoding, recv_timeout)
-        self.client_pref = str(sock.getpeername()[0])
+    def __init__(self, core_or_sock: ChatCore | socket.socket | EmptySocket, encoding: str = "utf-8", recv_timeout: float = 1.0, input_sym: str = ">", timestamps: bool = True) -> None:
+        # Accept a prepared core or wrap the socket in GenericChatCore
+        if isinstance(core_or_sock, ChatCore):
+            core = core_or_sock
+        else:
+            if isinstance(core_or_sock, EmptySocket):
+                logger.critical("Provided socket has not estabilished conenction")
+                raise RuntimeError("Provided socket has not estabilished conenction")
+            core = GenericChatCore(core_or_sock, encoding, recv_timeout)
+
+        super().__init__(core)
+        self.client_pref = str(self.core.sock.getpeername()[0])
 
         self.stdscr = None
         self.height, self.width = 0, 0
@@ -94,7 +104,7 @@ class CEditCLI(GenericChatCore):
                     
                     # Send message while still raw
                     try:
-                        super().send_msg(msg)
+                        self.core.send_msg(msg)
                     except (BrokenPipeError, OSError):
                         logger.info("Connection lost")
                         self.running = False
@@ -103,7 +113,7 @@ class CEditCLI(GenericChatCore):
                     self._render_display()
                 case 265 | curses.KEY_F1:  # F1
                     try:
-                        super().send_msg("__exit__")
+                        self.core.send_msg("__exit__")
                     except:
                         pass
                     logger.info("Exit chat")
@@ -148,7 +158,7 @@ class CEditCLI(GenericChatCore):
 
     def _out_thread(self) -> None:
         while self.running:
-            msg = super().recv_msg()
+            msg = self.core.recv_msg()
             
             if isinstance(msg, EmptyMessage):
                 continue

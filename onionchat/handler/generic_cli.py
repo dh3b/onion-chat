@@ -3,18 +3,32 @@ import socket
 import logging
 from onionchat.utils.types import *
 from onionchat.core.generic_chat import GenericChatCore
+from onionchat.core.chat_core import ChatCore
+from onionchat.handler.handler_core import HandlerCore
 
 logger = logging.getLogger(__name__)
 
-class GenericCLIHandler(GenericChatCore):
-    """CLI chat interface."""
+class GenericCLIHandler(HandlerCore):
+    """CLI chat interface.
 
-    def __init__(self, sock: socket.socket | EmptySocket, encoding: str = "utf-8", recv_timeout: float = 1.0) -> None:
-        if isinstance(sock, EmptySocket):
-            logger.critical("Provided socket has not estabilished conenction")
-            raise RuntimeError("Provided socket has not estabilished conenction")
-        super().__init__(sock, encoding, recv_timeout)
-        self.client_pref = str(sock.getpeername()[0])
+    Accepts either:
+      - a ChatCore instance, or
+      - a raw socket.socket (backwards compatible).
+    """
+
+    def __init__(self, core_or_sock: ChatCore | socket.socket | EmptySocket, encoding: str = "utf-8", recv_timeout: float = 1.0) -> None:
+        # Accept a prepared core
+        if isinstance(core_or_sock, ChatCore):
+            core = core_or_sock
+        else:
+            # If socket-like, build a GenericChatCore wrapper (keeps old API)
+            if isinstance(core_or_sock, EmptySocket):
+                logger.critical("Provided socket has not estabilished conenction")
+                raise RuntimeError("Provided socket has not estabilished conenction")
+            core = GenericChatCore(core_or_sock, encoding, recv_timeout)
+
+        super().__init__(core)
+        self.client_pref = str(self.core.sock.getpeername()[0])
         self.running = False
     
     def open(self) -> None:
@@ -35,7 +49,7 @@ class GenericCLIHandler(GenericChatCore):
         t_in.join()
         t_out.join()
         
-        self.sock.close()
+        self.core.sock.close()
 
     def _in_thread(self) -> None:
         while self.running:
@@ -46,14 +60,14 @@ class GenericCLIHandler(GenericChatCore):
 
             if msg == "exit":
                 try:
-                    super().send_msg("__exit__")
+                    self.core.send_msg("__exit__")
                 except:
                     pass
                 self.running = False
                 break
 
             try:
-                super().send_msg(msg)
+                self.core.send_msg(msg)
             except (BrokenPipeError, OSError):
                 logger.info("\nConnection lost")
                 self.running = False
@@ -61,7 +75,7 @@ class GenericCLIHandler(GenericChatCore):
 
     def _out_thread(self) -> None:
         while self.running:
-            msg = super().recv_msg()
+            msg = self.core.recv_msg()
             
             if isinstance(msg, EmptyMessage):
                 continue
