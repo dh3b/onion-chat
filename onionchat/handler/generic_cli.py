@@ -1,7 +1,7 @@
 import threading
 import socket
 import logging
-from onionchat.utils.typing_classes import *
+from onionchat.utils.types import *
 from onionchat.core.generic_chat import GenericChatCore
 
 logger = logging.getLogger(__name__)

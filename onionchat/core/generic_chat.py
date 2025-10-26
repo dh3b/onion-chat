@@ -1,5 +1,5 @@
 import socket
-from onionchat.utils.typing_classes import *
+from onionchat.utils.types import *
 from onionchat.core.chat_core import ChatCore
 from typing import Optional
 

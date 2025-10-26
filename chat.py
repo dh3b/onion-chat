@@ -1,6 +1,6 @@
 import logging
-from onionchat.conns.p2p import PeerConnection
-from onionchat.handlers.cedit_cli import CEditCLI as CEHandler
+from onionchat.conn.p2p import PeerConnection
+from onionchat.handler.cedit_cli import CEditCLI as CEHandler
 from onionchat.utils import constants
 from argparse import ArgumentParser
 

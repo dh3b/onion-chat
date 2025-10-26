@@ -1,5 +1,5 @@
 from socket import socket
-from onionchat.utils.typing_classes import *
+from onionchat.utils.types import *
 from abc import ABC, abstractmethod
 from typing import Optional
 

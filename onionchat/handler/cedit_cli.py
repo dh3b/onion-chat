@@ -3,8 +3,8 @@ import threading
 import logging
 import socket
 import datetime
-from onionchat.utils.util_funcs import wrap_text
-from onionchat.utils.typing_classes import *
+from onionchat.utils.funcs import wrap_text
+from onionchat.utils.types import *
 from onionchat.core.generic_chat import GenericChatCore
 
 logger = logging.getLogger(__name__)

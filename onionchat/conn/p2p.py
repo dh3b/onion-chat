@@ -1,7 +1,7 @@
 from time import time
 import socket
 import logging
-from onionchat.utils.typing_classes import *
+from onionchat.utils.types import *
 
 logger = logging.getLogger(__name__)
 
