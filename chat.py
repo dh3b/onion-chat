@@ -31,7 +31,7 @@ def build_parser() -> ArgumentParser:
     parser.add_argument(
         "--core",
         type=str,
-        default="onionchat.core.generic_chat:GenericChatCore",
+        default="onionchat.chat.generic_chat:GenericChat",
         help="Core class path (module:Class)."
     )
 

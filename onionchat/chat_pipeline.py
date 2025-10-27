@@ -2,8 +2,8 @@ import importlib
 import logging
 from typing import Tuple, Any
 from onionchat.core.chat_core import ChatCore
-from onionchat.handler.handler_core import HandlerCore
-from onionchat.conn.conn_core import ConnectionCore
+from onionchat.core.handler_core import HandlerCore
+from onionchat.core.conn_core import ConnectionCore
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ class PipelineInit:
     def __init__(
         self,
         conn_path: str = "onionchat.conn.p2p:PeerConnection",
-        core_path: str = "onionchat.core.generic_chat:GenericChatCore",
+        core_path: str = "onionchat.chat.generic_chat:GenericChat",
         handler_path: str = "onionchat.handler.cedit_cli:CEditCLI",
         port: int = 49152,
         encoding: str = "utf-8",

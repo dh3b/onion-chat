@@ -3,7 +3,7 @@ from onionchat.utils.types import *
 from onionchat.core.chat_core import ChatCore
 from typing import Optional
 
-class GenericChatCore(ChatCore):
+class GenericChat(ChatCore):
     """Core messaging over socket.
     
     Args:

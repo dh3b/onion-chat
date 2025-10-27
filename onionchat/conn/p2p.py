@@ -2,7 +2,7 @@ from time import time
 import socket
 import logging
 from onionchat.utils.types import *
-from onionchat.conn.conn_core import ConnectionCore
+from onionchat.core.conn_core import ConnectionCore
 
 logger = logging.getLogger(__name__)
 

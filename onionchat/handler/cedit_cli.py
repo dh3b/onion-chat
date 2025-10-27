@@ -5,9 +5,9 @@ import socket
 import datetime
 from onionchat.utils.funcs import wrap_text
 from onionchat.utils.types import *
-from onionchat.core.generic_chat import GenericChatCore
+from onionchat.chat.generic_chat import GenericChat
 from onionchat.core.chat_core import ChatCore
-from onionchat.handler.handler_core import HandlerCore
+from onionchat.core.handler_core import HandlerCore
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,7 @@ class CEditCLI(HandlerCore):
             if isinstance(core_or_sock, EmptySocket):
                 logger.critical("Provided socket has not estabilished conenction")
                 raise RuntimeError("Provided socket has not estabilished conenction")
-            core = GenericChatCore(core_or_sock, encoding, recv_timeout)
+            core = GenericChat(core_or_sock, encoding, recv_timeout)
 
         super().__init__(core)
         self.client_pref = str(self.core.sock.getpeername()[0])
