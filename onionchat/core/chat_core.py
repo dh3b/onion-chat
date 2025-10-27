@@ -10,6 +10,9 @@ class ChatCore(ABC):
         sock: Socket connection object
     """
 
+    # I could make this core dependent on ConnectionCore, but maybe someone would
+    # like to use it with their own socket management.
+    # Besides it doesnt break anything to keep it this way.
     def __init__(self, sock: socket) -> None:
         self.sock = sock
 

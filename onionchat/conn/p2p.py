@@ -32,10 +32,12 @@ class PeerConnection(ConnectionCore):
         """
 
         self.client = self._con(con_attempt_lim, con_timeout)
+        self.is_server = False if not isinstance(self.client, EmptySocket) else EmptyConnection()
 
         if isinstance(self.client, EmptySocket):
             logger.warning("Failed to connect, setting up host")
             self.client = self._host(host_listen_lim, host_timeout)
+        self.is_server = True if not isinstance(self.client, EmptySocket) else EmptyConnection()
 
         if isinstance(self.client, EmptySocket):
             logger.error(f"Failed to peer with {self.dest_ip}. Host listen timed out ({host_listen_lim})")
