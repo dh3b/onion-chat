@@ -4,6 +4,7 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 import onionchat.config as cfg
 from onionchat.pipeline_builder import PipelineBuilder
 from onionchat.utils.funcs import load_class
+import ast
 
 logger = logging.getLogger(__name__)
 
@@ -74,11 +75,17 @@ def main() -> None:
     args, unknown = parser.parse_known_args()
 
     custom_args = {}
+    def parse_value(value: str):
+        try:
+            return ast.literal_eval(value)
+        except (ValueError, SyntaxError):
+            return value
+
     for arg in unknown:
         if '=' in arg:
             key, value = arg.split('=', 1)
             # convert to pep style argument names
-            custom_args[key.lstrip('--').replace('-', '_')] = value
+            custom_args[key.lstrip('--').replace('-', '_')] = parse_value(value)
 
     pline = PipelineBuilder(args.conn, args.chat, args.handler, args.transforms, custom_args)
     handler = pline.build()
