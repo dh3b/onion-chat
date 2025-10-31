@@ -8,11 +8,15 @@ class SSLWrap(TransformCore):
     """SSL/TLS wrapping transform
     
     Args:
-        conn (ConnectionCore): ConnectionCore instance to wrap with SSL
+        layer (ConnectionCore): ConnectionCore instance to wrap with SSL
     """
 
-    def __init__(self, conn: ConnectionCore) -> None:
-        super().__init__(conn)
+    def __init__(self, layer: ConnectionCore) -> None:
+        super().__init__(layer)
+
+    @staticmethod
+    def get_layer() -> type[ConnectionCore]:
+        return ConnectionCore
 
     def transform(self) -> ConnectionCore:
         if not isinstance(self._layer, ConnectionCore):

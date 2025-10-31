@@ -1,11 +1,10 @@
 from typing import Dict, Any, List
-import importlib
-import inspect
 import logging
-from onionchat.config import CONNS, CHATS, HANDLERS, TRANSFORMS
+from onionchat.config import CONNS, CHATS, HANDLERS, TRANSFORMS, CoreT
 from onionchat.core.chat_core import ChatCore
 from onionchat.core.handler_core import HandlerCore
 from onionchat.core.conn_core import ConnectionCore
+from onionchat.core.transform_core import TransformCore
 from onionchat.utils.funcs import load_class
 
 logger = logging.getLogger(__name__)
@@ -33,27 +32,22 @@ class PipelineBuilder:
         args: Dict[str, Any] | None = None
     ) -> None:
         try:
-            self.conn_path = CONNS[conn]
-            self.chat_path = CHATS[chat]
-            self.handler_path = HANDLERS[handler]
-            self.transform_paths = [TRANSFORMS[t] for t in transforms] if transforms else []
+            self.conn_cls = load_class(CONNS[conn])
+            self.chat_cls = load_class(CHATS[chat])
+            self.handler_cls = load_class(HANDLERS[handler])
+            self.transforms_cls = [load_class(TRANSFORMS[t]) for t in transforms] if transforms else []
         except KeyError as e:
             logger.critical(f"Invalid pipeline component alias: {e}")
             raise ValueError(f"Invalid pipeline component alias: {e}")
         self.args = args or {}        
 
     def build(self) -> HandlerCore:
-        # Load transforms
-        transforms = []
-        for transform_path in self.transform_paths or []:
-            transforms.append(self._instantiate_class(load_class(transform_path)))
-
         # Layer 1: Connection
-        conn = self._instantiate_class(load_class(self.conn_path))
+        conn = PipelineBuilder.instantiate_class(self.conn_cls, self.args)
         # estabilish connection require extra kwargs
-        sig = inspect.signature(conn.est_connection)
-        valid_args = {k: v for k, v in self.args.items() if k in sig.parameters}
-        conn.est_connection(**valid_args)
+        conn.est_connection(**PipelineBuilder.validate_args(conn.est_connection, self.args))
+        conn = self._apply_transforms(conn, self.transforms_cls)
+        assert isinstance(conn, ConnectionCore)
         try:
             conn_socket = conn.get_client()
             self.args["sock"] = conn_socket
@@ -62,19 +56,38 @@ class PipelineBuilder:
             raise ConnectionError("Failed to establish connection")
 
         # Layer 2: Chat
-        chat = self._instantiate_class(load_class(self.chat_path))
+        chat = PipelineBuilder.instantiate_class(self.chat_cls, self.args)
+        chat = self._apply_transforms(chat, self.transforms_cls)
+        assert isinstance(chat, ChatCore)
         self.args["chat"] = chat
 
         # Layer 3: Handler
-        handler = self._instantiate_class(load_class(self.handler_path))
+        handler = PipelineBuilder.instantiate_class(self.handler_cls, self.args)
+        handler = self._apply_transforms(handler, self.transforms_cls)
+        assert isinstance(handler, HandlerCore)
 
         return handler
-    
-    def _instantiate_class(self, cls):
-        sig = inspect.signature(cls.__init__)
-        valid_args = {k: v for k, v in self.args.items() if k in sig.parameters}
-        try:
-            return cls(**valid_args)
-        except TypeError as e:
-            logger.critical(f"Failed to instantiate class {cls.__name__}: {e}")
-            raise RuntimeError(f"Failed to instantiate class {cls.__name__}: {e}")
+
+    def _apply_transforms(self, layer: CoreT, transforms_cls: List[type[TransformCore]]) -> CoreT:
+        for transform_cls in transforms_cls:
+            if not isinstance(layer, transform_cls.get_layer()):
+                continue
+            t = PipelineBuilder.instantiate_class(transform_cls, {"layer": layer})
+            try:
+                layer = t.transform(**PipelineBuilder.validate_args(t.transform, self.args))
+            except Exception as e:
+                logger.error(f"Error applying transform {transform_cls.__name__}: {e}")
+                continue
+        return layer    
+
+    @staticmethod
+    def validate_args(func, args: Dict) -> Dict:
+            """Filter a dict to only include keys that are valid arguments for a function."""
+            import inspect
+
+            sig = inspect.signature(func)
+            return {k: v for k, v in args.items() if k in sig.parameters}
+
+    @staticmethod
+    def instantiate_class(cls, args: Dict): # type: ignore (cls means any class here)
+            return cls(**PipelineBuilder.validate_args(cls.__init__, args))

@@ -1,4 +1,10 @@
+from onionchat.core.conn_core import ConnectionCore
+from onionchat.core.chat_core import ChatCore
+from onionchat.core.handler_core import HandlerCore
+
 logging_format: str = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+
+CoreT = ConnectionCore | ChatCore | HandlerCore
 
 CONNS = {
     "p2p": "onionchat.conn.p2p:PeerConnection"
