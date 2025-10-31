@@ -7,7 +7,12 @@ from onionchat.core.conn_core import ConnectionCore
 logger = logging.getLogger(__name__)
 
 class PeerConnection(ConnectionCore):
-    """P2P connection handler."""
+    """P2P connection handler.
+
+    Args:
+        dest_ip (str): Destination IPv4 address
+        port (int): Destination port    
+    """
 
     def __init__(self, dest_ip, port=49152) -> None:
         super().__init__(dest_ip, port)
@@ -25,10 +30,10 @@ class PeerConnection(ConnectionCore):
         """Establish connection by connecting or hosting.
         
         Args:
-            con_attempt_lim: Max connection attempts
-            con_timeout: Timeout per connection attempt
-            host_timeout: Timeout for accepting connections
-            host_listen_lim: Max time to listen as host
+            con_attempt_lim (int): Max connection attempts
+            con_timeout (float): Timeout per connection attempt
+            host_timeout (float): Timeout for accepting connections
+            host_listen_lim (float): Max time to listen as host
         """
 
         self.client = self._con(con_attempt_lim, con_timeout)

@@ -7,7 +7,7 @@ class ChatCore(ABC):
     """Core messaging over socket. (Virtual class)
     
     Args:
-        sock: Socket connection object
+        sock (socket.socket): Socket connection object
     """
 
     # I could make this core dependent on ConnectionCore, but maybe someone would

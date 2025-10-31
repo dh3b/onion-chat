@@ -5,6 +5,12 @@ from onionchat.core.conn_core import ConnectionCore
 from onionchat.core.handler_core import HandlerCore
 
 class TransformCore(ABC):
+    """Core transform interface. (Virtual class)
+    
+    Args:
+        layer (ConnectionCore | ChatCore | HandlerCore | None): The layer type a transform applies to
+    """
+
     def __init__(self, layer: ConnectionCore | ChatCore | HandlerCore | None ) -> None:
         self._layer = layer
         if isinstance(layer, ConnectionCore):

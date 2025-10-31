@@ -11,7 +11,18 @@ from onionchat.utils.funcs import load_class
 logger = logging.getLogger(__name__)
 
 class PipelineBuilder:
-    """Prepare connection, 3 layer chat pipeline"""
+    """Prepare connection, 3 layer chat pipeline
+    
+    Args:
+        conn (str): Connection type alias
+        chat (str): Chat type alias
+        handler (str): Handler type alias
+        transforms (List[str] | None): List of transform type aliases
+        args (Dict[str, Any] | None): Additional arguments to pass to components
+
+    Returns:
+        HandlerCore: Fully built chat handler instance
+    """
 
     def __init__(
         self,
@@ -62,4 +73,8 @@ class PipelineBuilder:
     def _instantiate_class(self, cls):
         sig = inspect.signature(cls.__init__)
         valid_args = {k: v for k, v in self.args.items() if k in sig.parameters}
-        return cls(**valid_args)
+        try:
+            return cls(**valid_args)
+        except TypeError as e:
+            logger.critical(f"Failed to instantiate class {cls.__name__}: {e}")
+            raise RuntimeError(f"Failed to instantiate class {cls.__name__}: {e}")

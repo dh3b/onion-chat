@@ -1,6 +1,6 @@
 import logging
 from typing import Tuple
-from argparse import ArgumentParser
+from argparse import ArgumentParser, RawTextHelpFormatter
 import onionchat.config as cfg
 from onionchat.pipeline_builder import PipelineBuilder
 from onionchat.utils.funcs import load_class
@@ -20,15 +20,18 @@ def cls_help_pair(alias: str) -> Tuple[str, str]:
 
     return (alias, load_class(path).__doc__ or "No documentation available")
 
+def format_choices(mapping: dict) -> str:
+    lines = []
+    for k in mapping.keys():
+        alias, doc = cls_help_pair(k)
+        f_doc = "\n".join("    " + line for line in doc.splitlines())
+        lines.append(f"{alias}\n{f_doc}")
+    return "\n" + "\n\n".join(lines)
+
 def build_parser() -> ArgumentParser:
     parser = ArgumentParser(
-        description="OnionChat, secure comms CLI"
-    )
-
-    parser.add_argument(
-        "dest_ip",
-        type=str,
-        help="Destination IPv4 address to connect to"
+        formatter_class=RawTextHelpFormatter,
+        description="OnionChat, secure comms CLI.\nArgs format --key=value, eg. --dest-ip=127.0.0.1"
     )
 
     parser.add_argument(
@@ -36,7 +39,7 @@ def build_parser() -> ArgumentParser:
         type=str,
         nargs="?",
         default="p2p",
-        help=f"Connection type: {[{cls_help_pair(k)} for k in cfg.CONNS.keys()]}"
+        help=f"Connection type:{format_choices(cfg.CONNS)}\n"
     )
 
     parser.add_argument(
@@ -44,7 +47,7 @@ def build_parser() -> ArgumentParser:
         type=str,
         nargs="?",
         default="generic",
-        help=f"Chat type: {[{cls_help_pair(k)} for k in cfg.CHATS.keys()]}"
+        help=f"Chat type:{format_choices(cfg.CHATS)}\n"
     )
 
     parser.add_argument(
@@ -52,15 +55,16 @@ def build_parser() -> ArgumentParser:
         type=str,
         nargs="?",
         default="cedit_cli",
-        help=f"Handler type: {[{cls_help_pair(k)} for k in cfg.HANDLERS.keys()]}"
+        help=f"Handler type:{format_choices(cfg.HANDLERS)}\n"
     )
 
     parser.add_argument(
-        "--transforms",
+        "-t", "--transforms",
         type=str,
         nargs="*",
         default=[],
-        help=f"Transforms to apply: {[{cls_help_pair(k)} for k in cfg.TRANSFORMS.keys()]}"
+        help=f"Transforms to apply:{format_choices(cfg.TRANSFORMS)}\n",
+        dest="transforms"
     )
 
     return parser
@@ -70,13 +74,12 @@ def main() -> None:
     args, unknown = parser.parse_known_args()
 
     custom_args = {}
-    for i in range(0, len(unknown), 2):
-        if unknown[i].startswith("--"):
-            key = unknown[i][2:]
-            value = unknown[i + 1] if (i + 1) < len(unknown) else True
-            custom_args[key] = value
+    for arg in unknown:
+        if '=' in arg:
+            key, value = arg.split('=', 1)
+            # convert to pep style argument names
+            custom_args[key.lstrip('--').replace('-', '_')] = value
 
-    custom_args["dest_ip"] = args.dest_ip
     pline = PipelineBuilder(args.conn, args.chat, args.handler, args.transforms, custom_args)
     handler = pline.build()
     handler.open()

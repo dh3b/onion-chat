@@ -11,7 +11,8 @@ logger = logging.getLogger(__name__)
 class GenericCLIHandler(HandlerCore):
     """CLI chat interface.
 
-    Accepts a ChatCore instance
+    Agrs:
+        chat (ChatCore): ChatCore instance to handle
     """
 
     def __init__(self, chat: ChatCore) -> None:

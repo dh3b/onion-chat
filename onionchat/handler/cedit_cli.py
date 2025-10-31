@@ -12,13 +12,12 @@ from onionchat.core.handler_core import HandlerCore
 logger = logging.getLogger(__name__)
 
 class CEditCLI(HandlerCore):
-    """
-        Curses based CLI chat interface.
-        Accepts a ChatCore.
+    """Curses based CLI chat interface. Accepts a ChatCore.
         
         Args:
-            input_sym: Input prompt symbol
-            timestamps: Whether to show timestamps on messages
+            chat (ChatCore): ChatCore instance to handle
+            input_sym (str): Input prompt symbol
+            timestamps (str): Whether to show timestamps on messages
     """
 
     def __init__(self, chat: ChatCore, input_sym: str = ">", timestamps: bool = True) -> None:

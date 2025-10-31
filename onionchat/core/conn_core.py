@@ -3,7 +3,12 @@ from socket import socket
 from onionchat.utils.types import EmptySocket, EmptyConnection
 
 class ConnectionCore(ABC):
-    """Abstract connection interface for P2P transports."""
+    """Core connection creation. (Virtual class)
+    
+    Args:
+        dest_ip (str): Destination IPv4 address
+        port (int): Destination port
+    """
 
     def __init__(self, dest_ip: str, port: int = 49152) -> None:
         self.dest_ip = dest_ip

@@ -7,9 +7,9 @@ class GenericChat(ChatCore):
     """Core messaging over socket.
     
     Args:
-        sock: Socket connection object
-        encoding: Message encoding type
-        recv_timeout: Receive timeout
+        sock (socket.socket): Socket connection object
+        encoding (str): Message encoding type
+        recv_timeout (float): Receive timeout
     """
 
     def __init__(self, sock: socket.socket, encoding: str = "utf-8", recv_timeout: float = 1.0) -> None:
