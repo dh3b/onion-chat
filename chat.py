@@ -25,7 +25,7 @@ def format_choices(mapping: dict) -> str:
     lines = []
     for k in mapping.keys():
         alias, doc = cls_help_pair(k)
-        f_doc = "\n".join("    " + line for line in doc.splitlines())
+        f_doc = "\n".join("\t" + line for line in doc.splitlines())
         lines.append(f"{alias}\n{f_doc}")
     return "\n" + "\n\n".join(lines)
 
