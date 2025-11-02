@@ -1,7 +1,7 @@
 from socket import socket
 from onionchat.utils.types import *
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, Dict
 
 class ChatCore(ABC):
     """Core messaging over socket. (Virtual class)
@@ -21,7 +21,7 @@ class ChatCore(ABC):
         pass
 
     @abstractmethod
-    def recv_msg(self) -> str | TerminateConnection | EmptyMessage:
+    def recv_msg(self) -> Dict | TerminateConnection | EmptyMessage:
         pass
 
     # @abstractmethod

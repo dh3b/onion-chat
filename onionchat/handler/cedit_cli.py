@@ -147,17 +147,17 @@ class CEditCLI(HandlerCore):
 
     def _out_thread(self) -> None:
         while self.running:
-            msg = self.chat.recv_msg()
-            
-            if isinstance(msg, EmptyMessage):
+            data = self.chat.recv_msg()
+
+            if isinstance(data, EmptyMessage):
                 continue
-            
-            if isinstance(msg, TerminateConnection) or msg.strip() == "__exit__":
+
+            if isinstance(data, TerminateConnection) or data.get("msg", "").strip() == "__exit__":
                 logger.info("Peer disconnected")
                 self.running = False
                 break
 
-            self.temp_msgs += wrap_text(f"{self.now}{self.client_pref}: {msg}", self.width)
+            self.temp_msgs += wrap_text(f"{self.now}{self.client_pref}: {data.get('msg', '')}", self.width)
             self._render_display()
             
     

@@ -1,7 +1,8 @@
 import socket
+import json
 from onionchat.utils.types import *
 from onionchat.core.chat_core import ChatCore
-from typing import Optional
+from typing import Optional, Dict
 
 class GenericChat(ChatCore):
     """Core messaging over socket.
@@ -24,12 +25,16 @@ class GenericChat(ChatCore):
             msg: Message to send
         """
 
+        data = {
+            "msg": msg
+        }
+
         try:
-            self.sock.sendall(msg.encode(self.encoding))
+            self.sock.sendall(json.dumps(data).encode(self.encoding))
         except (BrokenPipeError, OSError):
             return TerminateConnection()
 
-    def recv_msg(self) -> TerminateConnection | EmptyMessage | str:
+    def recv_msg(self) -> TerminateConnection | EmptyMessage | Dict:
         """Receive message from peer.
         
         Returns:
@@ -40,7 +45,7 @@ class GenericChat(ChatCore):
             data = self.sock.recv(1024)
             if not data:
                 return TerminateConnection()
-            return data.decode(self.encoding)
+            return json.loads(data.decode(self.encoding))
         except socket.timeout:
             return EmptyMessage()
         except (ConnectionResetError, OSError):
