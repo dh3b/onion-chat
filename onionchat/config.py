@@ -16,7 +16,8 @@ HANDLERS = {
 
 TRANSFORMS = {
     "ssl": "onionchat.transform.ssl_wrap:SSLWrap",
-    "save_history": "onionchat.transform.save_history:SaveHistory"
+    "save_history": "onionchat.transform.save_history:SaveHistory",
+    "x25519": "onionchat.transform.x25519:X25519Transform"
 }
 
 # help(generic_chat.GenericChat)
