@@ -20,10 +20,8 @@ class PayloadChat(ChatCore):
     """
 
     def __init__(self, sock: socket.socket, encoding: str = "utf-8", recv_timeout: float = 1.0, payload_flags: str = "") -> None:
-        super().__init__(sock)
+        super().__init__(sock, encoding, recv_timeout)
         self.payload_flags = payload_flags
-        self.encoding = encoding
-        self.sock.settimeout(recv_timeout)
         self.include_timestamps = 't' in payload_flags
         self.include_ip = 'i' in payload_flags
 

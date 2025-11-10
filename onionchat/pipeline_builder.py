@@ -1,6 +1,7 @@
 from typing import Dict, Any, List
 import logging
-from onionchat.config import CONNS, CHATS, HANDLERS, TRANSFORMS, CoreT
+from onionchat.config import CONNS, CHATS, HANDLERS, TRANSFORMS
+from onionchat.utils.types import CoreT
 from onionchat.core.chat_core import ChatCore
 from onionchat.core.handler_core import HandlerCore
 from onionchat.core.conn_core import ConnectionCore

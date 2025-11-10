@@ -1,10 +1,4 @@
-from onionchat.core.conn_core import ConnectionCore
-from onionchat.core.chat_core import ChatCore
-from onionchat.core.handler_core import HandlerCore
-
 logging_format: str = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-
-CoreT = ConnectionCore | ChatCore | HandlerCore
 
 CONNS = {
     "p2p": "onionchat.conn.p2p:PeerConnection"
@@ -21,7 +15,8 @@ HANDLERS = {
 }
 
 TRANSFORMS = {
-    "ssl": "onionchat.transform.ssl_wrap:SSLWrap"
+    "ssl": "onionchat.transform.ssl_wrap:SSLWrap",
+    "save_history": "onionchat.transform.save_history:SaveHistory"
 }
 
 # help(generic_chat.GenericChat)

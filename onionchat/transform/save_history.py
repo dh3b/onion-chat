@@ -1,0 +1,66 @@
+import pathlib
+from onionchat.core.transform_core import TransformCore
+from onionchat.core.handler_core import HandlerCore
+
+class SaveHistory(TransformCore):
+    """Chat history saving transform
+    
+    Args:
+        layer (HandlerCore): Handler instance to save history for
+
+    Transform args:
+        log_file_path (str): Log file path, defaults to .onionchat_logs, named after a timestamp
+    """
+
+    def __init__(self, layer: HandlerCore) -> None:
+        super().__init__(layer)
+        self.path = None
+        self.encoding = self._layer.chat.encoding
+
+    @staticmethod
+    def get_layer() -> type[HandlerCore]:
+        return HandlerCore
+    
+    def transform(self, log_file_path: str | None = None) -> HandlerCore:
+        if not log_file_path:
+            try:
+                self.path = pathlib.Path.home() / ".onionchat_logs" / f"chat_log_{self._layer.client_pref}.txt"
+                self.path.parent.mkdir(parents=True, exist_ok=True)
+            except PermissionError as e:
+                raise ValueError(f"Cannot create log file in home directory: {e}")
+        else:
+            try:
+                self.path = pathlib.Path(log_file_path).expanduser().resolve()
+            except (ValueError, OSError) as e:
+                raise ValueError(f"Invalid log file path: {e}")
+            
+        self.orig_open = self._layer.open
+        self._layer.open = self.open_wrapper
+        return self._layer
+            
+    def open_wrapper(self) -> None:
+        if not self.path:
+            raise ValueError("Log file path not set. Cannot save chat history.")
+        
+        # Load history
+        try:
+            if self.path.exists():
+                with open(self.path, "r", encoding=self.encoding) as log_file:
+                    for line in log_file:
+                        self._layer.history.append(line.rstrip("\n"))
+        except (IOError, OSError, UnicodeDecodeError) as e:
+            raise IOError(f"Failed to load chat history: {e}")
+
+        # Start the handler loop
+        self.orig_open()
+        # Save history
+        try:
+            self.path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.path, "w", encoding=self.encoding) as log_file:
+                for msg in self._layer.history:
+                    log_file.write(msg + "\n")
+        except (IOError, OSError, UnicodeEncodeError) as e:
+            raise IOError(f"Failed to save chat history: {e}")
+
+    def open(self) -> None:
+        raise NotImplementedError("Use the wrapped layer.open instead.")

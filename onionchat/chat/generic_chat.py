@@ -14,9 +14,7 @@ class GenericChat(ChatCore):
     """
 
     def __init__(self, sock: socket.socket, encoding: str = "utf-8", recv_timeout: float = 1.0) -> None:
-        super().__init__(sock)
-        self.sock.settimeout(recv_timeout)
-        self.encoding = encoding
+        super().__init__(sock, encoding, recv_timeout)
 
     def send_msg(self, msg: str) -> Optional[TerminateConnection]:
         """Send message to peer.

@@ -9,6 +9,8 @@ class HandlerCore(ABC):
     """
 
     def __init__(self, chat: ChatCore) -> None:
+        self.client_pref = str(chat.sock.getpeername()[0]) or "unknown"
+        self.history = []
         self.chat = chat
 
     @abstractmethod

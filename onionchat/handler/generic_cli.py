@@ -17,7 +17,6 @@ class GenericCLIHandler(HandlerCore):
 
     def __init__(self, chat: ChatCore) -> None:
         super().__init__(chat)
-        self.client_pref = str(self.chat.sock.getpeername()[0])
         self.running = False
     
     def open(self) -> None:
@@ -57,12 +56,16 @@ class GenericCLIHandler(HandlerCore):
 
             try:
                 self.chat.send_msg(msg)
+                self.history.append(msg)
             except (BrokenPipeError, OSError):
                 logger.info("\nConnection lost")
                 self.running = False
                 break
 
     def _out_thread(self) -> None:
+        for msg in self.history:
+            print(f"\n{self.client_pref}:{msg}\n> ", end="", flush=True)
+
         while self.running:
             data = self.chat.recv_msg()
 
@@ -74,4 +77,5 @@ class GenericCLIHandler(HandlerCore):
                 self.running = False
                 break
 
+            self.history.append(data.get("msg", ""))
             print(f"\n{self.client_pref}:{data.get('msg', '')}\n> ", end="", flush=True)

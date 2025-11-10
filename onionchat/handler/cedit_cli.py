@@ -22,14 +22,12 @@ class CEditCLI(HandlerCore):
 
     def __init__(self, chat: ChatCore, input_sym: str = ">", timestamps: bool = True) -> None:
         super().__init__(chat)
-        self.client_pref = str(self.chat.sock.getpeername()[0])
 
         self.stdscr = None
         self.height, self.width = 0, 0
         self.max_display_size, self.max_input_size = 1024, 256
        
         self.input_sym = input_sym.strip() + " "
-        self.temp_msgs = []
         self.inp = ""
         self.inp_pos, self.display_pos = 0, 0
 
@@ -98,7 +96,7 @@ class CEditCLI(HandlerCore):
                         logger.info("Connection lost")
                         self.running = False
 
-                    self.temp_msgs += wrap_text(f"{self.now}You: {msg}", self.width)                  
+                    self.history += wrap_text(f"{self.now}You: {msg}", self.width)                  
                     self._render_display()
                 case 265 | curses.KEY_F1:  # F1
                     try:
@@ -147,6 +145,7 @@ class CEditCLI(HandlerCore):
 
     def _out_thread(self) -> None:
         while self.running:
+            self._render_display()
             data = self.chat.recv_msg()
 
             if isinstance(data, EmptyMessage):
@@ -157,8 +156,7 @@ class CEditCLI(HandlerCore):
                 self.running = False
                 break
 
-            self.temp_msgs += wrap_text(f"{self.now}{self.client_pref}: {data.get('msg', '')}", self.width)
-            self._render_display()
+            self.history += wrap_text(f"{self.now}{self.client_pref}: {data.get('msg', '')}", self.width)
             
     
     def get_bounded_display_pos(self) -> int:
@@ -168,7 +166,7 @@ class CEditCLI(HandlerCore):
         """
 
         usable_height = self.height - 1
-        return max(usable_height, len(self.temp_msgs)) - usable_height + self.display_pos
+        return max(usable_height, len(self.history)) - usable_height + self.display_pos
 
     def get_bounded_input_pos(self) -> tuple[int, int]:
         """
@@ -199,6 +197,6 @@ class CEditCLI(HandlerCore):
 
     def _render_display(self) -> None:
         self.display_pad.clear()
-        for i, msg in enumerate(self.temp_msgs[:self.max_display_size]):
+        for i, msg in enumerate(self.history[:self.max_display_size]):
             self.display_pad.addstr(i, 0, msg)
         self.display_pad.refresh(self.get_bounded_display_pos(), 0, 0, 0, self.height - 2, self.width - 1)
