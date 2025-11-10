@@ -10,18 +10,21 @@ class SaveHistory(TransformCore):
 
     Transform args:
         log_file_path (str): Log file path, defaults to .onionchat_logs, named after a timestamp
+        reset_history (bool): Whether to reset history on load
     """
 
     def __init__(self, layer: HandlerCore) -> None:
         super().__init__(layer)
         self.path = None
+        self.reset_history = False
         self.encoding = self._layer.chat.encoding
 
     @staticmethod
     def get_layer() -> type[HandlerCore]:
         return HandlerCore
     
-    def transform(self, log_file_path: str | None = None) -> HandlerCore:
+    def transform(self, log_file_path: str | None = None, reset_history: bool = False) -> HandlerCore:
+        self.reset_history = reset_history
         if not log_file_path:
             try:
                 self.path = pathlib.Path.home() / ".onionchat_logs" / f"chat_log_{self._layer.client_pref}.txt"
@@ -43,13 +46,14 @@ class SaveHistory(TransformCore):
             raise ValueError("Log file path not set. Cannot save chat history.")
         
         # Load history
-        try:
-            if self.path.exists():
-                with open(self.path, "r", encoding=self.encoding) as log_file:
-                    for line in log_file:
-                        self._layer.history.append(line.rstrip("\n"))
-        except (IOError, OSError, UnicodeDecodeError) as e:
-            raise IOError(f"Failed to load chat history: {e}")
+        if not self.reset_history:
+            try:
+                if self.path.exists():
+                    with open(self.path, "r", encoding=self.encoding) as log_file:
+                        for line in log_file:
+                            self._layer.history.append(line.rstrip("\n"))
+            except (IOError, OSError, UnicodeDecodeError) as e:
+                raise IOError(f"Failed to load chat history: {e}")
 
         # Start the handler loop
         self.orig_open()
