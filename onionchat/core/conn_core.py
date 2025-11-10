@@ -19,7 +19,9 @@ class ConnectionCore(ABC):
     @abstractmethod
     def est_connection(self, *args, **kwargs) -> None:
         """Establish connection (connect or host)."""
+        ...
 
     @abstractmethod
     def get_client(self) -> socket:
         """Return an established client socket (raise on missing)."""
+        ...

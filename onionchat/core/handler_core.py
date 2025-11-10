@@ -16,3 +16,4 @@ class HandlerCore(ABC):
     @abstractmethod
     def open(self) -> None:
         """Start the UI / handler loop."""
+        ...

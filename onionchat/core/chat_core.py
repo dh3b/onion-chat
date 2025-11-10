@@ -20,11 +20,11 @@ class ChatCore(ABC):
 
     @abstractmethod
     def send_msg(self, msg: str) -> Optional[TerminateConnection]:
-        pass
+        ...
 
     @abstractmethod
     def recv_msg(self) -> Dict | TerminateConnection | EmptyMessage:
-        pass
+        ...
 
     # @abstractmethod
     # def ping(self) -> bool:
