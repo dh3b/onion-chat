@@ -5,6 +5,9 @@ from onionchat.utils.enc_socket import EncryptedSocket
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey, X25519PublicKey
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
 from cryptography.hazmat.primitives import hashes, serialization
+import logging
+
+logger = logging.getLogger(__name__)
 
 class X25519Transform(TransformCore):
     """Ephemeral key exchange (X25519)
@@ -24,7 +27,8 @@ class X25519Transform(TransformCore):
         try:
             sock = self._layer.get_client()
         except ValueError as e:
-            raise ValueError("Connection not established before X25519 transform") from e
+            logger.error("Connection not established before X25519 transform")
+            raise
 
         # generate ephemeral keypair
         priv = X25519PrivateKey.generate()
@@ -36,7 +40,8 @@ class X25519Transform(TransformCore):
         try:
             sock.sendall(pub)
         except Exception as e:
-            raise ConnectionError(f"Failed to send public key: {e}")
+            logger.error(f"Failed to send public key: {e}")
+            raise
 
         # helper to recv exact length (propagates socket.timeout)
         def recv_exact(n: int) -> bytes:
@@ -52,13 +57,15 @@ class X25519Transform(TransformCore):
 
         peer_pub = recv_exact(32)
         if not peer_pub or len(peer_pub) != 32:
-            raise ConnectionError("Failed to receive peer public key")
+            logger.error("Failed to receive peer public key")
+            raise ConnectionError("Invalid peer public key")
 
         try:
             peer_pub_obj = X25519PublicKey.from_public_bytes(peer_pub)
             shared = priv.exchange(peer_pub_obj)  # 32 bytes shared secret
         except Exception as e:
-            raise ConnectionError(f"X25519 exchange failed: {e}")
+            logger.error(f"X25519 exchange failed: {e}")
+            raise
 
         # derive two 32-byte keys (send / recv) deterministically
         hkdf = HKDF(

@@ -1,8 +1,11 @@
 import ssl
+import logging
 from socket import socket
 from onionchat.utils.types import EmptySocket
 from onionchat.core.transform_core import TransformCore
 from onionchat.core.conn_core import ConnectionCore
+
+logger = logging.getLogger(__name__)
 
 class SSLWrap(TransformCore):
     """SSL/TLS wrapping transform
@@ -19,8 +22,6 @@ class SSLWrap(TransformCore):
         return ConnectionCore
 
     def transform(self) -> ConnectionCore:
-        if not isinstance(self._layer, ConnectionCore):
-            raise TypeError("SSLWrap transform requires a ConnectionCore layer.")
         return self._layer
         # todo
     

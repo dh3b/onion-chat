@@ -78,7 +78,7 @@ class PipelineBuilder:
                 layer = t.transform(**PipelineBuilder.validate_args(t.transform, self.args))
             except Exception as e:
                 logger.error(f"Error applying transform {transform_cls.__name__}: {e}")
-                continue
+                raise
         return layer    
 
     @staticmethod
