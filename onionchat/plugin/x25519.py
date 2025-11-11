@@ -1,4 +1,4 @@
-from onionchat.core.transform_core import TransformCore
+from onionchat.core.plugin_core import PluginCore
 from onionchat.core.conn_core import ConnectionCore
 from onionchat.utils.enc_socket import EncryptedSocket
 
@@ -9,7 +9,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class X25519Transform(TransformCore):
+class X25519(PluginCore):
     """Ephemeral key exchange (X25519)
     
     Args:
@@ -50,7 +50,7 @@ class X25519Transform(TransformCore):
             while remaining > 0:
                 chunk = sock.recv(remaining)
                 if not chunk:
-                    return b""
+                    raise ConnectionError("Socket closed unexpectedly while receiving data")
                 parts.append(chunk)
                 remaining -= len(chunk)
             return b"".join(parts)

@@ -1,13 +1,13 @@
 import pathlib
 import logging
-from onionchat.core.transform_core import TransformCore
+from onionchat.core.plugin_core import PluginCore
 from onionchat.core.handler_core import HandlerCore
 
 logger = logging.getLogger(__name__)
 
-class SaveHistory(TransformCore):
-    """Chat history saving transform
-    
+class SaveHistory(PluginCore):
+    """Chat history saving plugin
+
     Args:
         layer (HandlerCore): Handler instance to save history for
 

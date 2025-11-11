@@ -14,7 +14,7 @@ logging.basicConfig(
 )
 
 def cls_help_pair(alias: str) -> Tuple[str, str]:
-    cls = {**cfg.CONNS, **cfg.CHATS, **cfg.HANDLERS, **cfg.TRANSFORMS}
+    cls = {**cfg.CONNS, **cfg.CHATS, **cfg.HANDLERS, **cfg.PLUGINS}
     path = cls.get(alias)
     if not path:
         return (alias, "Unknown class alias")
@@ -60,12 +60,12 @@ def build_parser() -> ArgumentParser:
     )
 
     parser.add_argument(
-        "-t", "--transforms",
+        "-pl", "--plugins",
         type=str,
         nargs="*",
         default=[],
-        help=f"Transforms to apply:{format_choices(cfg.TRANSFORMS)}\n",
-        dest="transforms"
+        help=f"Plugins to apply:{format_choices(cfg.PLUGINS)}\n",
+        dest="plugins"
     )
 
     return parser
@@ -87,7 +87,7 @@ def main() -> None:
             # convert to pep style argument names
             custom_args[key.lstrip('--').replace('-', '_')] = parse_value(value)
 
-    pline = PipelineBuilder(args.conn, args.chat, args.handler, args.transforms, custom_args)
+    pline = PipelineBuilder(args.conn, args.chat, args.handler, args.plugins, custom_args)
     handler = pline.build()
     handler.open()
 

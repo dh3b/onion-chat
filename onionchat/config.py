@@ -14,10 +14,10 @@ HANDLERS = {
     "cedit_cli": "onionchat.handler.cedit_cli:CEditCLI"
 }
 
-TRANSFORMS = {
-    "ssl": "onionchat.transform.ssl_wrap:SSLWrap",
-    "save_history": "onionchat.transform.save_history:SaveHistory",
-    "x25519": "onionchat.transform.x25519:X25519Transform"
+PLUGINS = {
+    "ssl": "onionchat.plugin.ssl_wrap:SSLWrap",
+    "save_history": "onionchat.plugin.save_history:SaveHistory",
+    "x25519": "onionchat.plugin.x25519:X25519"
 }
 
 # help(generic_chat.GenericChat)

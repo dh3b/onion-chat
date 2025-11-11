@@ -5,11 +5,11 @@ from onionchat.core.chat_core import ChatCore
 from onionchat.core.conn_core import ConnectionCore
 from onionchat.core.handler_core import HandlerCore
 
-class TransformCore(Generic[CoreT], ABC):
-    """Core transform interface. (Virtual class)
+class PluginCore(Generic[CoreT], ABC):
+    """Core plugin interface. (Virtual class)
     
     Args:
-        layer (CoreT): The layer type a transform applies to
+        layer (CoreT): The layer type a plugin applies to
     """
 
     def __init__(self, layer: CoreT) -> None:
@@ -18,10 +18,10 @@ class TransformCore(Generic[CoreT], ABC):
     @staticmethod
     @abstractmethod
     def get_layer() -> type[CoreT]:
-        """Return the layer type this transform applies to."""
+        """Return the layer type this plugin applies to."""
         ...
     
     @abstractmethod
     def transform(self, *args, **kwargs) -> CoreT:
-        """Transform data going through the layer."""
+        """Transform the layer and return the modified layer instance."""
         ...

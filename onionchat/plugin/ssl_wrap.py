@@ -2,14 +2,14 @@ import ssl
 import logging
 from socket import socket
 from onionchat.utils.types import EmptySocket
-from onionchat.core.transform_core import TransformCore
+from onionchat.core.plugin_core import PluginCore
 from onionchat.core.conn_core import ConnectionCore
 
 logger = logging.getLogger(__name__)
 
-class SSLWrap(TransformCore):
-    """SSL/TLS wrapping transform
-    
+class SSLWrap(PluginCore):
+    """SSL/TLS wrapping plugin
+
     Args:
         layer (ConnectionCore): ConnectionCore instance to wrap with SSL
     """
