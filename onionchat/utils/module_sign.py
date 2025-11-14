@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Iterable, List
+from typing import Iterable, List, Dict, Optional
 import importlib, json
 from pathlib import Path
 from socket import socket
@@ -30,6 +30,57 @@ def digest_for_classes(classes: Iterable[type]) -> bytes:
     entries.sort(key=lambda e: (e["module"], e["class"]))
     payload = json.dumps(entries, separators=(",", ":"), sort_keys=True).encode("utf-8")
     return _sha256(payload)
+
+def manifest_for_classes(
+    classes: Iterable[type],
+    alias_by_cls: Optional[Dict[type, str]] = None
+) -> Dict:
+    """Create a canonical manifest describing selected modules."""
+    entries = []
+    for cls in classes:
+        mod_path = f"{cls.__module__}.{cls.__name__}"
+        alias = alias_by_cls.get(cls) if alias_by_cls else None
+        entries.append({
+            "alias": alias or mod_path,
+            "import": mod_path,
+            "wire_affecting": bool(getattr(cls, "wire_affecting", False))
+        })
+    # sort for canonical form
+    entries.sort(key=lambda e: (e["alias"], e["import"]))
+    return {
+        "level": getattr(cfg, "module_sign_level"),
+        "entries": entries,
+    }
+
+def serialize_manifest(manifest: Dict) -> bytes:
+    return json.dumps(manifest, separators=(",", ":"), sort_keys=True).encode("utf-8")
+
+def digest_for_manifest_bytes(manifest_bytes: bytes) -> bytes:
+    return _sha256(manifest_bytes)
+
+def exchange_manifest(sock: socket, manifest_bytes: bytes) -> Dict:
+    """Symmetric exchange of a length-prefixed JSON manifest; returns peer manifest dict."""
+    length = len(manifest_bytes).to_bytes(4, "big")
+    # send ours
+    sock.sendall(length + manifest_bytes)
+    # recv peer
+    peer_len_b = _recv_exact(sock, 4)
+    if not peer_len_b:
+        return {}
+    peer_len = int.from_bytes(peer_len_b, "big")
+    peer_b = _recv_exact(sock, peer_len)
+    try:
+        return json.loads(peer_b.decode("utf-8"))
+    except Exception:
+        return {}
+
+def summarize_manifest(manifest: Dict) -> str:
+    try:
+        level = manifest.get("level", "?")
+        mods = [e.get("alias") or e.get("import", "?") for e in manifest.get("entries", [])]
+        return f"level={level}; modules={mods}"
+    except Exception:
+        return "invalid manifest"
 
 def select_classes_for_level(
     conn_cls: type, chat_cls: type, handler_cls: type, plugins_cls: List[type], level: str

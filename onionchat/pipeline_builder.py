@@ -34,6 +34,11 @@ class PipelineBuilder:
         args: Dict[str, Any] | None = None
     ) -> None:
         try:
+            self.conn_alias = conn
+            self.chat_alias = chat
+            self.handler_alias = handler
+            self.plugins_aliases = plugins or []
+
             self.conn_cls = load_class(cfg.CONNS[conn])
             self.chat_cls = load_class(cfg.CHATS[chat])
             self.handler_cls = load_class(cfg.HANDLERS[handler])
@@ -46,25 +51,40 @@ class PipelineBuilder:
     def build(self) -> HandlerCore:
         # Layer 1: Connection
         conn = PipelineBuilder.instantiate_class(self.conn_cls, self.args)
-        # estabilish connection require extra kwargs
         conn.est_connection(**PipelineBuilder.validate_args(conn.est_connection, self.args))
 
-
-        # module-sign negotiation (compatibility) and local signature verification
         level = getattr(cfg, "module_sign_level")
         if level != "broad":
             classes = ms.select_classes_for_level(self.conn_cls, self.chat_cls, self.handler_cls, self.plugins_cls, level)
-            digest = ms.digest_for_classes(classes)
+
+            # map classes to user-provided aliases for readability
+            alias_by_cls = {
+                self.conn_cls: self.conn_alias,
+                self.chat_cls: self.chat_alias,
+                self.handler_cls: self.handler_alias,
+            }
+            for cls, alias in zip(self.plugins_cls, self.plugins_aliases):
+                alias_by_cls[cls] = alias
+
+            manifest = ms.manifest_for_classes(classes, alias_by_cls)
+            mbytes = ms.serialize_manifest(manifest)
+            ldigest = ms.digest_for_manifest_bytes(mbytes)
+
             try:
-                ok = ms.exchange_and_match(conn.get_client(), digest)
+                peer_manifest = ms.exchange_manifest(conn.get_client(), mbytes)
             except Exception as e:
-                logger.error(f"Module-sign handshake failed: {e}")
+                logger.error(f"Module-sign manifest exchange failed: {e}")
                 raise
-            if not ok:
+
+            pdigest = ms.digest_for_manifest_bytes(ms.serialize_manifest(peer_manifest)) if peer_manifest else b""
+            if not peer_manifest or pdigest != ldigest:
                 logger.error("Peer module set mismatch")
+                logger.info(f"Local: {ms.summarize_manifest(manifest)}")
+                logger.info(f"Peer:  {ms.summarize_manifest(peer_manifest)}")
                 raise ConnectionError("Peer module set mismatch")
-            
-        
+
+            logger.info(f"Module set match: {ms.summarize_manifest(manifest)}")
+
         conn = self._apply_plugins(conn, self.plugins_cls)
         assert isinstance(conn, ConnectionCore)
         try:
