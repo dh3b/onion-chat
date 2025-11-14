@@ -1,5 +1,6 @@
 import socket
 import threading
+import onionchat.config as cfg
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 
 class EncryptedSocket:
@@ -51,7 +52,7 @@ class EncryptedSocket:
         length = len(ct).to_bytes(4, "big")
         self._sock.sendall(length + ct)
 
-    def recv(self, bufsize: int = 4096) -> bytes:
+    def recv(self, bufsize: int = cfg.enc_recv_buf) -> bytes:
         """Read a full framed ciphertext message, decrypt and return plaintext bytes."""
 
         # read 4-byte length

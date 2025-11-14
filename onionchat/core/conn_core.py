@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from socket import socket
+import onionchat.config as cfg
 from onionchat.utils.types import EmptySocket, EmptyConnection
 
 class ConnectionCore(ABC):
@@ -10,7 +11,7 @@ class ConnectionCore(ABC):
         port (int): Destination port
     """
 
-    def __init__(self, dest_ip: str, port: int = 49152) -> None:
+    def __init__(self, dest_ip: str, port: int = cfg.port) -> None:
         self.dest_ip = dest_ip
         self.port = port
         self.is_server: bool | EmptyConnection = EmptyConnection()

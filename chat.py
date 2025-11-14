@@ -9,7 +9,7 @@ import ast
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=cfg.logging_level,
     format=cfg.logging_format
 )
 
@@ -39,7 +39,7 @@ def build_parser() -> ArgumentParser:
         "conn",
         type=str,
         nargs="?",
-        default="p2p",
+        default=cfg.default_conn,
         help=f"Connection type:{format_choices(cfg.CONNS)}\n"
     )
 
@@ -47,7 +47,7 @@ def build_parser() -> ArgumentParser:
         "chat",
         type=str,
         nargs="?",
-        default="generic",
+        default=cfg.default_chat,
         help=f"Chat type:{format_choices(cfg.CHATS)}\n"
     )
 
@@ -55,7 +55,7 @@ def build_parser() -> ArgumentParser:
         "handler",
         type=str,
         nargs="?",
-        default="cedit_cli",
+        default=cfg.default_handler,
         help=f"Handler type:{format_choices(cfg.HANDLERS)}\n"
     )
 
@@ -63,13 +63,13 @@ def build_parser() -> ArgumentParser:
         "-pl", "--plugins",
         type=str,
         nargs="*",
-        default=[],
+        default=cfg.default_plugins,
         help=f"Plugins to apply:{format_choices(cfg.PLUGINS)}\n",
         dest="plugins"
     )
 
     return parser
-    
+
 def main() -> None:
     parser = build_parser()
     args, unknown = parser.parse_known_args()
@@ -84,7 +84,6 @@ def main() -> None:
     for arg in unknown:
         if '=' in arg:
             key, value = arg.split('=', 1)
-            # convert to pep style argument names
             custom_args[key.lstrip('--').replace('-', '_')] = parse_value(value)
 
     pline = PipelineBuilder(args.conn, args.chat, args.handler, args.plugins, custom_args)

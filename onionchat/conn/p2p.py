@@ -1,6 +1,7 @@
 from time import time
 import socket
 import logging
+import onionchat.config as cfg
 from onionchat.utils.types import *
 from onionchat.core.conn_core import ConnectionCore
 
@@ -14,7 +15,7 @@ class PeerConnection(ConnectionCore):
         port (int): Destination port    
     """
 
-    def __init__(self, dest_ip, port=49152) -> None:
+    def __init__(self, dest_ip, port: int = cfg.port) -> None:
         super().__init__(dest_ip, port)
         try:
             socket.inet_aton(dest_ip)
@@ -26,7 +27,13 @@ class PeerConnection(ConnectionCore):
         self.rejected = []
         self.client = EmptySocket()
 
-    def est_connection(self, con_attempt_lim: int = 5, con_timeout: float = 5.0, host_timeout: float = 1.0, host_listen_lim: float = 60.0) -> None:
+    def est_connection(
+        self,
+        con_attempt_lim: int = cfg.con_attempt_lim,
+        con_timeout: float = cfg.con_timeout,
+        host_timeout: float = cfg.host_timeout,
+        host_listen_lim: float = cfg.host_listen_lim
+    ) -> None:
         """Establish connection by connecting or hosting.
         
         Args:

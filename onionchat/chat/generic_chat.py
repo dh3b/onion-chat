@@ -1,5 +1,6 @@
 import socket
 import json
+import onionchat.config as cfg
 from onionchat.utils.types import *
 from onionchat.core.chat_core import ChatCore
 from typing import Optional, Dict
@@ -13,7 +14,7 @@ class GenericChat(ChatCore):
         recv_timeout (float): Receive timeout
     """
 
-    def __init__(self, sock: socket.socket, encoding: str = "utf-8", recv_timeout: float = 1.0) -> None:
+    def __init__(self, sock: socket.socket, encoding: str = cfg.encoding, recv_timeout: float = cfg.recv_timeout) -> None:
         super().__init__(sock, encoding, recv_timeout)
 
     def send_msg(self, msg: str) -> Optional[TerminateConnection]:
@@ -40,7 +41,7 @@ class GenericChat(ChatCore):
         """
 
         try:
-            data = self.sock.recv(1024)
+            data = self.sock.recv(cfg.recv_buf)
             if not data:
                 return TerminateConnection()
             return json.loads(data.decode(self.encoding))

@@ -3,6 +3,7 @@ import threading
 import logging
 import socket
 import datetime
+import onionchat.config as cfg
 from onionchat.utils.funcs import wrap_text
 from onionchat.utils.types import *
 from onionchat.chat.generic_chat import GenericChat
@@ -20,12 +21,12 @@ class CEditCLI(HandlerCore):
             timestamps (str): Whether to show timestamps on messages
     """
 
-    def __init__(self, chat: ChatCore, input_sym: str = ">", timestamps: bool = True) -> None:
+    def __init__(self, chat: ChatCore, input_sym: str = cfg.input_sym, timestamps: bool = cfg.cedit_timestamps) -> None:
         super().__init__(chat)
 
         self.stdscr = None
         self.height, self.width = 0, 0
-        self.max_display_size, self.max_input_size = 1024, 256
+        self.max_display_size, self.max_input_size = cfg.cedit_max_display_size, cfg.cedit_max_input_size
        
         self.input_sym = input_sym.strip() + " "
         self.inp = ""

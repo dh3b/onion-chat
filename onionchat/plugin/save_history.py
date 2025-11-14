@@ -1,5 +1,6 @@
 import pathlib
 import logging
+import onionchat.config as cfg
 from onionchat.core.plugin_core import PluginCore
 from onionchat.core.handler_core import HandlerCore
 
@@ -26,11 +27,11 @@ class SaveHistory(PluginCore):
     def get_layer() -> type[HandlerCore]:
         return HandlerCore
     
-    def transform(self, log_file_path: str | None = None, reset_history: bool = False) -> HandlerCore:
+    def transform(self, log_file_path: str | None = cfg.log_file_path, reset_history: bool = cfg.reset_history) -> HandlerCore:
         self.reset_history = reset_history
         if not log_file_path:
             try:
-                self.path = pathlib.Path.home() / ".onionchat_logs" / f"chat_log_{self._layer.client_pref}.txt"
+                self.path = pathlib.Path.home() / cfg.log_dir_name / f"{cfg.log_file_prefix}{self._layer.client_pref}{cfg.log_file_ext}"
                 self.path.parent.mkdir(parents=True, exist_ok=True)
             except PermissionError as e:
                 logger.error(f"Cannot create log file in home directory: {e}")

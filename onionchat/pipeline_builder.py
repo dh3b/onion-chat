@@ -1,6 +1,6 @@
 from typing import Dict, Any, List
 import logging
-from onionchat.config import CONNS, CHATS, HANDLERS, PLUGINS
+import onionchat.config as cfg
 from onionchat.utils.types import CoreT
 from onionchat.core.chat_core import ChatCore
 from onionchat.core.handler_core import HandlerCore
@@ -26,21 +26,21 @@ class PipelineBuilder:
 
     def __init__(
         self,
-        conn: str = "p2p",
-        chat: str = "generic",
-        handler: str = "cedit_cli",
-        plugins: List[str] | None = None,
+        conn: str = cfg.default_conn,
+        chat: str = cfg.default_chat,
+        handler: str = cfg.default_handler,
+        plugins: List[str] | None = cfg.default_plugins,
         args: Dict[str, Any] | None = None
     ) -> None:
         try:
-            self.conn_cls = load_class(CONNS[conn])
-            self.chat_cls = load_class(CHATS[chat])
-            self.handler_cls = load_class(HANDLERS[handler])
-            self.plugins_cls = [load_class(PLUGINS[p]) for p in plugins] if plugins else []
+            self.conn_cls = load_class(cfg.CONNS[conn])
+            self.chat_cls = load_class(cfg.CHATS[chat])
+            self.handler_cls = load_class(cfg.HANDLERS[handler])
+            self.plugins_cls = [load_class(cfg.PLUGINS[p]) for p in plugins] if plugins else []
         except KeyError as e:
             logger.critical(f"Invalid pipeline component alias: {e}")
             raise ValueError(f"Invalid pipeline component alias: {e}")
-        self.args = args or {}        
+        self.args = args or {}
 
     def build(self) -> HandlerCore:
         # Layer 1: Connection
@@ -83,12 +83,10 @@ class PipelineBuilder:
 
     @staticmethod
     def validate_args(func, args: Dict) -> Dict:
-            """Filter a dict to only include keys that are valid arguments for a function."""
-            import inspect
-
-            sig = inspect.signature(func)
-            return {k: v for k, v in args.items() if k in sig.parameters}
+        """Filter a dict to only include keys that are valid arguments for a function."""
+        import inspect
+        return {k: v for k, v in args.items() if k in sig.parameters} if (sig := inspect.signature(func)) else {}
 
     @staticmethod
-    def instantiate_class(cls, args: Dict): # type: ignore (cls means any class here)
-            return cls(**PipelineBuilder.validate_args(cls.__init__, args))
+    def instantiate_class(cls, args: Dict):
+        return cls(**PipelineBuilder.validate_args(cls.__init__, args))

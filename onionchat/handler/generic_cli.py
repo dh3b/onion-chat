@@ -1,6 +1,7 @@
 import threading
 import socket
 import logging
+import onionchat.config as cfg
 from onionchat.utils.types import *
 from onionchat.chat.generic_chat import GenericChat
 from onionchat.core.chat_core import ChatCore
@@ -41,7 +42,7 @@ class GenericCLIHandler(HandlerCore):
 
     def _in_thread(self) -> None:
         while self.running:
-            msg = input("> ").strip()
+            msg = input(f"{cfg.input_sym} ").strip()
 
             if not msg:
                 continue
@@ -64,7 +65,7 @@ class GenericCLIHandler(HandlerCore):
 
     def _out_thread(self) -> None:
         for msg in self.history:
-            print(f"\n{self.client_pref}:{msg}\n> ", end="", flush=True)
+            print(f"\n{self.client_pref}:{msg}\n{cfg.input_sym} ", end="", flush=True)
 
         while self.running:
             data = self.chat.recv_msg()
@@ -78,4 +79,4 @@ class GenericCLIHandler(HandlerCore):
                 break
 
             self.history.append(data.get("msg", ""))
-            print(f"\n{self.client_pref}:{data.get('msg', '')}\n> ", end="", flush=True)
+            print(f"\n{self.client_pref}:{data.get('msg', '')}\n{cfg.input_sym} ", end="", flush=True)

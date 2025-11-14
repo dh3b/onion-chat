@@ -2,6 +2,7 @@ import socket
 from typing import Dict, Optional
 import json
 from time import time
+import onionchat.config as cfg
 from onionchat.core.chat_core import ChatCore
 from onionchat.utils.types import *
 
@@ -19,7 +20,13 @@ class PayloadChat(ChatCore):
         - 'i': include sender's IP
     """
 
-    def __init__(self, sock: socket.socket, encoding: str = "utf-8", recv_timeout: float = 1.0, payload_flags: str = "") -> None:
+    def __init__(
+        self,
+        sock: socket.socket,
+        encoding: str = cfg.encoding,
+        recv_timeout: float = cfg.recv_timeout,
+        payload_flags: str = cfg.payload_flags
+    ) -> None:
         super().__init__(sock, encoding, recv_timeout)
         self.payload_flags = payload_flags
         self.include_timestamps = 't' in payload_flags
@@ -33,7 +40,7 @@ class PayloadChat(ChatCore):
         }
 
         data = json.dumps(payload).encode(self.encoding)
-        length = len(data).to_bytes(4, byteorder='big')
+        length = len(data).to_bytes(cfg.frame_len_bytes, byteorder=cfg.byteorder)
 
         try:
             self.sock.sendall(length + data)
@@ -41,11 +48,11 @@ class PayloadChat(ChatCore):
             return TerminateConnection()
 
     def recv_msg(self) -> Dict | TerminateConnection | EmptyMessage:
-        length_data = self.sock.recv(4)
-        if not length_data:
-            return TerminateConnection()
         try:
-            length = int.from_bytes(length_data, "big")
+            length_data = self.sock.recv(cfg.frame_len_bytes)
+            if not length_data:
+                return TerminateConnection()
+            length = int.from_bytes(length_data, cfg.byteorder)
             data = self.sock.recv(length)
             payload = json.loads(data.decode(self.encoding))
             return payload

@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import onionchat.config as cfg
 from onionchat.core.chat_core import ChatCore
 
 class HandlerCore(ABC):
@@ -9,7 +10,7 @@ class HandlerCore(ABC):
     """
 
     def __init__(self, chat: ChatCore) -> None:
-        self.client_pref = str(chat.sock.getpeername()[0]) or "unknown"
+        self.client_pref = str(chat.sock.getpeername()[0]) or cfg.unknown_client
         self.history = []
         self.chat = chat
 
