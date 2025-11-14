@@ -23,6 +23,8 @@ class SaveHistory(PluginCore):
         self.reset_history = False
         self.encoding = self._layer.chat.encoding
 
+    wire_affecting: bool = False
+
     @staticmethod
     def get_layer() -> type[HandlerCore]:
         return HandlerCore

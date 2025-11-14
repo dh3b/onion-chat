@@ -7,6 +7,7 @@ from onionchat.core.handler_core import HandlerCore
 from onionchat.core.conn_core import ConnectionCore
 from onionchat.core.plugin_core import PluginCore
 from onionchat.utils.funcs import load_class
+from onionchat.utils import module_sign as ms
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,23 @@ class PipelineBuilder:
         conn = PipelineBuilder.instantiate_class(self.conn_cls, self.args)
         # estabilish connection require extra kwargs
         conn.est_connection(**PipelineBuilder.validate_args(conn.est_connection, self.args))
+
+
+        # module-sign negotiation (compatibility) and local signature verification
+        level = getattr(cfg, "module_sign_level")
+        if level != "broad":
+            classes = ms.select_classes_for_level(self.conn_cls, self.chat_cls, self.handler_cls, self.plugins_cls, level)
+            digest = ms.digest_for_classes(classes)
+            try:
+                ok = ms.exchange_and_match(conn.get_client(), digest)
+            except Exception as e:
+                logger.error(f"Module-sign handshake failed: {e}")
+                raise
+            if not ok:
+                logger.error("Peer module set mismatch")
+                raise ConnectionError("Peer module set mismatch")
+            
+        
         conn = self._apply_plugins(conn, self.plugins_cls)
         assert isinstance(conn, ConnectionCore)
         try:

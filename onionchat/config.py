@@ -47,3 +47,9 @@ log_file_ext: str = ".txt"
 
 # misc
 unknown_client: str = "unknown"
+
+# module signing
+# note: this can't be set using the ui
+module_sign_level: Literal['strict', 'secure', 'broad'] = "secure"
+# PEM-encoded Ed25519 public keys of trusted signers (optional; empty -> skip signature auth)
+trusted_signing_pubkeys: list[str] = []

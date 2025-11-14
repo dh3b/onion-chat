@@ -19,6 +19,8 @@ class X25519(PluginCore):
     def __init__(self, layer: ConnectionCore) -> None:
         super().__init__(layer)
 
+    wire_affecting: bool = True
+
     @staticmethod
     def get_layer() -> type[ConnectionCore]:
         return ConnectionCore

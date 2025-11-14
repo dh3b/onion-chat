@@ -15,6 +15,8 @@ class PluginCore(Generic[CoreT], ABC):
     def __init__(self, layer: CoreT) -> None:
         self._layer: CoreT = layer
 
+    wire_affecting: bool = False
+
     @staticmethod
     @abstractmethod
     def get_layer() -> type[CoreT]:
