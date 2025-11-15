@@ -39,10 +39,16 @@ class PipelineBuilder:
             self.handler_alias = handler
             self.plugins_aliases = plugins or []
 
-            self.conn_cls = load_class(cfg.CONNS[conn])
-            self.chat_cls = load_class(cfg.CHATS[chat])
-            self.handler_cls = load_class(cfg.HANDLERS[handler])
-            self.plugins_cls = [load_class(cfg.PLUGINS[p]) for p in plugins] if plugins else []
+            # reorder to match components.PLUGINS declaration order
+            for p in self.plugins_aliases:
+                if p not in cfg.PLUGINS:
+                    raise KeyError(p)
+            self.plugins_aliases = [alias for alias in cfg.PLUGINS.keys() if alias in self.plugins_aliases]
+
+            self.conn_cls = load_class(cfg.CONNS[self.conn_alias])
+            self.chat_cls = load_class(cfg.CHATS[self.chat_alias])
+            self.handler_cls = load_class(cfg.HANDLERS[self.handler_alias])
+            self.plugins_cls = [load_class(cfg.PLUGINS[p]) for p in self.plugins_aliases] if self.plugins_aliases else []
         except KeyError as e:
             logger.critical(f"Invalid pipeline component alias: {e}")
             raise ValueError(f"Invalid pipeline component alias: {e}")

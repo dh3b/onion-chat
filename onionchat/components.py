@@ -12,8 +12,10 @@ HANDLERS = {
     "cedit_cli": "onionchat.handler.cedit_cli:CEditCLI"
 }
 
+# !ORDER MATTERS!
 PLUGINS = {
     "ssl": "onionchat.plugin.ssl_wrap:SSLWrap",
     "save_history": "onionchat.plugin.save_history:SaveHistory",
-    "x25519": "onionchat.plugin.x25519:X25519"
+    "x25519": "onionchat.plugin.x25519:X25519",
+    "aead": "onionchat.plugin.aead:AEAD"
 }

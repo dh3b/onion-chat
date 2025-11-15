@@ -1,9 +1,46 @@
+import logging
 import socket
 import threading
-import onionchat.config as cfg
 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
+import onionchat.config as cfg
+from onionchat.core.plugin_core import PluginCore
+from onionchat.core.conn_core import ConnectionCore
 
-class EncryptedSocket:
+logger = logging.getLogger(__name__)
+
+class AEAD(PluginCore):
+    """Encrypted transport (AEAD)
+    Note: Requires previous transformations for ConnectionCore to obtain send_key and recv_key
+    
+    Args:
+        layer (ConnectionCore): The layer type a plugin applies to
+    """
+
+    def __init__(self, layer: ConnectionCore) -> None:
+        super().__init__(layer)
+        self._sock = self._layer.get_client()
+
+    wire_affecting: bool = True
+
+    @staticmethod
+    def get_layer() -> type[ConnectionCore]:
+        return ConnectionCore
+    
+    def transform(self) -> ConnectionCore:
+        if not hasattr(self._layer, 'send_key') or not hasattr(self._layer, 'recv_key'):
+            logger.error("AEAD transform requires 'send_key' and 'recv_key' attributes on ConnectionCore")
+            raise ValueError("Missing 'send_key' or 'recv_key' in ConnectionCore for AEAD transform")
+
+        enc_sock = _EncryptedSocket(
+            raw_sock=self._sock,
+            send_key=self._layer.send_key,
+            recv_key=self._layer.recv_key
+        )
+
+        self._layer.client = enc_sock
+        return self._layer
+
+class _EncryptedSocket:
     """
     Small socket-like wrapper presenting key socket methods:
 

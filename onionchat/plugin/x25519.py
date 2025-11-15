@@ -1,6 +1,5 @@
 from onionchat.core.plugin_core import PluginCore
 from onionchat.core.conn_core import ConnectionCore
-from onionchat.utils.enc_socket import EncryptedSocket
 
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey, X25519PublicKey
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -85,10 +84,7 @@ class X25519(PluginCore):
         else:
             send_key, recv_key = key_b, key_a
 
-        enc_sock = EncryptedSocket(sock, send_key, recv_key)
-        try:
-            self._layer.client = enc_sock  # type: ignore
-        except Exception:
-            pass
+        self._layer.send_key = send_key
+        self._layer.recv_key = recv_key
 
         return self._layer
