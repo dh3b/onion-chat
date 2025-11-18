@@ -5,6 +5,7 @@ from pathlib import Path
 from socket import socket
 from cryptography.hazmat.primitives import hashes
 import onionchat.config as cfg
+from onionchat.utils.funcs import recv_exact
 
 def _class_file(cls: type) -> Path:
     mod = importlib.import_module(cls.__module__)
@@ -64,11 +65,11 @@ def exchange_manifest(sock: socket, manifest_bytes: bytes) -> Dict:
     # send ours
     sock.sendall(length + manifest_bytes)
     # recv peer
-    peer_len_b = _recv_exact(sock, 4)
+    peer_len_b = recv_exact(sock, 4)
     if not peer_len_b:
         return {}
     peer_len = int.from_bytes(peer_len_b, "big")
-    peer_b = _recv_exact(sock, peer_len)
+    peer_b = recv_exact(sock, peer_len)
     try:
         return json.loads(peer_b.decode("utf-8"))
     except Exception:
@@ -101,14 +102,5 @@ def exchange_and_match(sock: socket, local_digest: bytes) -> bool:
     # send
     sock.sendall(local_digest)
     # recv
-    peer = _recv_exact(sock, 32)
+    peer = recv_exact(sock, 32)
     return peer == local_digest
-
-def _recv_exact(sock: socket, n: int) -> bytes:
-    buf = b""
-    while len(buf) < n:
-        chunk = sock.recv(n - len(buf))
-        if not chunk:
-            return b""
-        buf += chunk
-    return buf

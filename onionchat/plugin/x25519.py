@@ -1,5 +1,6 @@
 from onionchat.core.plugin_core import PluginCore
 from onionchat.core.conn_core import ConnectionCore
+from onionchat.utils.funcs import recv_exact
 
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey, X25519PublicKey
 from cryptography.hazmat.primitives.kdf.hkdf import HKDF
@@ -44,19 +45,7 @@ class X25519(PluginCore):
             logger.error(f"Failed to send public key: {e}")
             raise
 
-        # helper to recv exact length (propagates socket.timeout)
-        def recv_exact(n: int) -> bytes:
-            parts = []
-            remaining = n
-            while remaining > 0:
-                chunk = sock.recv(remaining)
-                if not chunk:
-                    raise ConnectionError("Socket closed unexpectedly while receiving data")
-                parts.append(chunk)
-                remaining -= len(chunk)
-            return b"".join(parts)
-
-        peer_pub = recv_exact(32)
+        peer_pub = recv_exact(sock, 32)
         if not peer_pub or len(peer_pub) != 32:
             logger.error("Failed to receive peer public key")
             raise ConnectionError("Invalid peer public key")

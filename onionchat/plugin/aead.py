@@ -5,6 +5,7 @@ from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
 import onionchat.config as cfg
 from onionchat.core.plugin_core import PluginCore
 from onionchat.core.conn_core import ConnectionCore
+from onionchat.utils.funcs import recv_exact
 
 logger = logging.getLogger(__name__)
 
@@ -66,18 +67,6 @@ class _EncryptedSocket:
     def _nonce_from_counter(self, counter: int) -> bytes:
         # 12 bytes nonce: 4 zero bytes + 8-byte big-endian counter
         return b"\x00\x00\x00\x00" + counter.to_bytes(8, "big")
-
-    def _recv_exact(self, n: int) -> bytes:
-        parts = []
-        remaining = n
-        while remaining > 0:
-            chunk = self._sock.recv(remaining)
-            if not chunk:
-                # connection closed
-                return b""
-            parts.append(chunk)
-            remaining -= len(chunk)
-        return b"".join(parts)
     
     def sendall(self, data: bytes):
         """Encrypt 'data' and send as: 4-byte len + ciphertext"""
@@ -93,13 +82,13 @@ class _EncryptedSocket:
         """Read a full framed ciphertext message, decrypt and return plaintext bytes."""
 
         # read 4-byte length
-        length_data = self._recv_exact(4)
+        length_data = recv_exact(self._sock, 4)
         if not length_data:
             return b""
         length = int.from_bytes(length_data, "big")
         if length <= 0:
             return b""
-        ct = self._recv_exact(length)
+        ct = recv_exact(self._sock, length)
         if not ct:
             return b""
         with self._lock:

@@ -1,5 +1,6 @@
 from typing import List
 import importlib
+from socket import socket
 
 def wrap_text(text: str, threshold: int) -> List[str]:
         out = []
@@ -19,3 +20,12 @@ def load_class(path: str):
 
         mod = importlib.import_module(mod_path)
         return getattr(mod, cls_name)
+
+def recv_exact(sock: socket, n: int) -> bytes:
+    buf = b""
+    while len(buf) < n:
+        chunk = sock.recv(n - len(buf))
+        if not chunk:
+            return b""
+        buf += chunk
+    return buf
