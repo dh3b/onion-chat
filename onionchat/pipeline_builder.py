@@ -93,12 +93,7 @@ class PipelineBuilder:
 
         conn = self._apply_plugins(conn, self.plugins_cls)
         assert isinstance(conn, ConnectionCore)
-        try:
-            conn_socket = conn.get_client()
-            self.args["sock"] = conn_socket
-        except ValueError:
-            logger.critical("Failed to establish connection")
-            raise ConnectionError("Failed to establish connection")
+        self.args["conn"] = conn
 
         # Layer 2: Chat
         chat = PipelineBuilder.instantiate_class(self.chat_cls, self.args)

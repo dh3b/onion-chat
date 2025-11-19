@@ -1,4 +1,4 @@
-from socket import socket
+from onionchat.core.conn_core import ConnectionCore
 from onionchat.utils.types import EmptyConnection, TerminateConnection, EmptyMessage
 from onionchat import config as cfg
 from abc import ABC, abstractmethod
@@ -8,14 +8,15 @@ class ChatCore(ABC):
     """Core messaging over socket. (Virtual class)
     
     Args:
-        sock (socket.socket): Socket connection object
+        connection (ConnectionCore): Connection prepared socket
     """
 
-    # I could make this core dependent on ConnectionCore, but maybe someone would
-    # like to use it with their own socket management.
-    # Besides it doesnt break anything to keep it this way.
-    def __init__(self, sock: socket, encoding: str = cfg.encoding, recv_timeout: float = cfg.recv_timeout) -> None:
-        self.sock = sock
+    def __init__(self, conn: ConnectionCore, encoding: str = cfg.encoding, recv_timeout: float = cfg.recv_timeout) -> None:
+        self.conn = conn
+        try:
+            self.sock = conn.get_client()
+        except ValueError as e:
+            raise RuntimeError(f"Failed to get client socket from connection: {e}") from e
         self.sock.settimeout(recv_timeout)
         self.encoding = encoding
 

@@ -3,6 +3,7 @@ from typing import Dict, Optional
 import json
 from time import time
 import onionchat.config as cfg
+from onionchat.core.conn_core import ConnectionCore
 from onionchat.core.chat_core import ChatCore
 from onionchat.utils.types import *
 
@@ -10,7 +11,7 @@ class PayloadChat(ChatCore):
     """Chat with payload handling.
     
     Args:
-        sock (socket.socket): Socket connection object
+        connection (ConnectionCore): Connection prepared socket
         encoding (str): Message encoding type
         recv_timeout (float): Receive timeout
         payload_flags (str): Payload handling flags
@@ -22,12 +23,12 @@ class PayloadChat(ChatCore):
 
     def __init__(
         self,
-        sock: socket.socket,
+        conn: ConnectionCore,
         encoding: str = cfg.encoding,
         recv_timeout: float = cfg.recv_timeout,
         payload_flags: str = cfg.payload_flags
     ) -> None:
-        super().__init__(sock, encoding, recv_timeout)
+        super().__init__(conn, encoding, recv_timeout)
         self.payload_flags = payload_flags
         self.include_timestamps = 't' in payload_flags
         self.include_ip = 'i' in payload_flags

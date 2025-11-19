@@ -2,6 +2,7 @@ import socket
 import json
 import onionchat.config as cfg
 from onionchat.utils.types import *
+from onionchat.core.conn_core import ConnectionCore
 from onionchat.core.chat_core import ChatCore
 from typing import Optional, Dict
 
@@ -9,13 +10,13 @@ class GenericChat(ChatCore):
     """Core messaging over socket.
     
     Args:
-        sock (socket.socket): Socket connection object
+        connection (ConnectionCore): Connection prepared socket
         encoding (str): Message encoding type
         recv_timeout (float): Receive timeout
     """
 
-    def __init__(self, sock: socket.socket, encoding: str = cfg.encoding, recv_timeout: float = cfg.recv_timeout) -> None:
-        super().__init__(sock, encoding, recv_timeout)
+    def __init__(self, conn: ConnectionCore, encoding: str = cfg.encoding, recv_timeout: float = cfg.recv_timeout) -> None:
+        super().__init__(conn, encoding, recv_timeout)
 
     def send_msg(self, msg: str) -> Optional[TerminateConnection]:
         """Send message to peer.
