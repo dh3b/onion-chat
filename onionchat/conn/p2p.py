@@ -26,6 +26,7 @@ class PeerConnection(ConnectionCore):
         self.host_ip = socket.gethostbyname(socket.gethostname())
         self.rejected = []
         self.client = EmptySocket()
+        self.is_host = False
 
     def est_connection(
         self,
@@ -48,6 +49,7 @@ class PeerConnection(ConnectionCore):
 
         if isinstance(self.client, EmptySocket):
             logger.warning("Failed to connect, setting up host")
+            self.is_host = True
             self.client = self._host(host_listen_lim, host_timeout)
         self.is_server = True if not isinstance(self.client, EmptySocket) else EmptyConnection()
 
