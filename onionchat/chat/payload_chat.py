@@ -54,10 +54,11 @@ class PayloadChat(ChatCore):
             if not length_data:
                 return TerminateConnection()
             length = int.from_bytes(length_data, cfg.byteorder)
-            data = self.sock.recv(length)
-            payload = json.loads(data.decode(self.encoding))
-            return payload
+            data = self.sock.recv(length).decode(self.encoding)
+            return json.loads(data)
+        except json.JSONDecodeError:
+            return {'msg': 'system[JSON decode error. Invalid message format.]'}
         except socket.timeout:
             return EmptyMessage()
-        except (ConnectionResetError, OSError, json.JSONDecodeError):
+        except (ConnectionResetError, OSError):
             return TerminateConnection()

@@ -46,6 +46,8 @@ class GenericChat(ChatCore):
             if not data:
                 return TerminateConnection()
             return json.loads(data.decode(self.encoding))
+        except json.JSONDecodeError:
+            return {'msg': 'system[JSON decode error. Invalid message format.]'}
         except socket.timeout:
             return EmptyMessage()
         except (ConnectionResetError, OSError):
