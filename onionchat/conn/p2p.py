@@ -22,8 +22,7 @@ class PeerConnection(ConnectionCore):
         except socket.error:
             logger.critical(f"{dest_ip} is not a valid ipv4 address")
             raise ValueError(f"{dest_ip} is not a valid ipv4 address")
-        
-        self.host_ip = socket.gethostbyname(socket.gethostname())
+    
         self.rejected = []
         self.client = EmptySocket()
         self.is_host = False

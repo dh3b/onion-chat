@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from socket import socket
+import socket
 import onionchat.config as cfg
 from onionchat.utils.types import EmptySocket, EmptyConnection
 
@@ -12,10 +12,11 @@ class ConnectionCore(ABC):
     """
 
     def __init__(self, dest_ip: str, port: int = cfg.port) -> None:
+        self.host_ip = socket.gethostbyname(socket.gethostname())
         self.dest_ip = dest_ip
         self.port = port
         self.is_server: bool | EmptyConnection = EmptyConnection()
-        self.client: socket | EmptySocket = EmptySocket() 
+        self.client: socket.socket | EmptySocket = EmptySocket() 
 
     @abstractmethod
     def est_connection(self, *args, **kwargs) -> None:
@@ -23,6 +24,6 @@ class ConnectionCore(ABC):
         ...
 
     @abstractmethod
-    def get_client(self) -> socket:
+    def get_client(self) -> socket.socket:
         """Return an established client socket (raise on missing)."""
         ...
